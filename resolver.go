@@ -100,7 +100,7 @@ func (r *Resolver) Address() (common.Address, error) {
 	}
 	ccipErr, errData := getCcipReadError(err)
 
-	// CCIP Read check
+	// try using the ENSIP-10 when the method is not found
 	if !ccipErr {
 		rAbi, _ := resolver.ContractMetaData.GetAbi()
 		m := rAbi.Methods["addr"]
@@ -111,7 +111,6 @@ func (r *Resolver) Address() (common.Address, error) {
 		}
 		rawAddr, err := r.offResolver.Resolve(nil, lhash, append(m.ID, args...))
 		if err == nil {
-			// resolved on-chain
 			return common.BytesToAddress(rawAddr), nil
 		}
 		ccipErr, errData = getCcipReadError(err)
@@ -263,21 +262,21 @@ func (r *Resolver) Text(name string) (string, error) {
 		return "", err
 	}
 	text, err := r.Contract.Text(nil, nameHash, name)
-	if err == nil {
+	if err == nil && text != "" {
 		return text, nil
 	}
-
 	ccipErr, errData := getCcipReadError(err)
 	rAbi, _ := resolver.ContractMetaData.GetAbi()
 	m := rAbi.Methods["text"]
 
+	// try using the ENSIP-10 when the method is not found
 	if !ccipErr {
+		args, _ := m.Inputs.Pack(nameHash, name)
 		lhash, err := DNSEncode(r.domain)
 		if err != nil {
 			return "", err
 		}
 
-		args, _ := m.Inputs.Pack(nameHash, name)
 		rawResp, err := r.offResolver.Resolve(nil, lhash, append(m.ID, args...))
 		if err == nil {
 			return string(rawResp), err

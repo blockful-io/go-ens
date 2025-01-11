@@ -171,3 +171,22 @@ func TestOffchainReadTextSubdomain(t *testing.T) {
 	require.Nil(t, err, "Error reading twitter")
 	assert.Equal(t, expected, actual, "Did not receive expected result")
 }
+
+func TestBaseText(t *testing.T) {
+	expected := "jessepollak"
+	r, err := NewResolver(client, "jesse.base.eth")
+	require.Nil(t, err, "Error creating resolver")
+	actual, err := r.Text("com.github")
+	require.Nil(t, err, "Error reading github")
+	assert.Equal(t, expected, actual, "Did not receive expected result")
+}
+
+func TestBaseAddress(t *testing.T) {
+	expected := common.HexToAddress("0x849151d7D0bF1F34b70d5caD5149D28CC2308bf1")
+	r, err := NewResolver(client, "jesse.base.eth")
+	require.Nil(t, err, "Error creating resolver")
+	actual, err := r.Address()
+	require.Nil(t, err, "Error reading github")
+	assert.Equal(t, expected, actual, "Did not receive expected result")
+}
+
