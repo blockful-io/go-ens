@@ -17,6 +17,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/wealdtech/go-ens/v3/contracts/offchainresolver"
 	"github.com/wealdtech/go-ens/v3/contracts/universalresolver"
 )
 
@@ -74,14 +75,12 @@ func ccipRead(backend bind.ContractBackend, resolverAddr common.Address, revertD
 		return nil, errors.New("unregistered name")
 	}
 
-	// this is used to handle any feedback with the same input/output
-	// regardless of method name
-	m := abi.NewMethod("", "", abi.Function, "view", false, false, abi.Arguments{
-		{Type: Bytes, Name: "values"},
-		{Type: Bytes},
-	}, abi.Arguments{
-		{Type: Bytes},
-	})
+	oAbi, err := offchainresolver.ContractMetaData.GetAbi()
+	if err != nil {
+		return nil, errors.New("no address")
+	}
+	// all callback has the same input/output, even if the method name is different
+	m := oAbi.Methods["resolveWithProof"]
 
 	args, err := m.Inputs.Pack(common.FromHex(resp), common.FromHex(extraDataHex))
 	if err != nil {
