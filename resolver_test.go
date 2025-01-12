@@ -190,3 +190,12 @@ func TestBaseAddress(t *testing.T) {
 	assert.Equal(t, expected, actual, "Did not receive expected result")
 }
 
+// it has a custom CCIP-Read callback `addrCallback` instead of `resolveWithProof`
+func TestLineaAddress(t *testing.T) {
+	expected := common.HexToAddress("0x3C6aE1aEE2AE2D6f9cB79f1F9EBF466402EF1bb6")
+	r, err := NewResolver(client, "james.linea.eth")
+	require.Nil(t, err, "Error creating resolver")
+	actual, err := r.Address()
+	require.Nil(t, err, "Error reading github")
+	assert.Equal(t, expected, actual, "Did not receive expected result")
+}

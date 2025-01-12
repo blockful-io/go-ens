@@ -13,12 +13,14 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/wealdtech/go-ens/v3/contracts/offchainresolver"
 	"github.com/wealdtech/go-ens/v3/contracts/universalresolver"
 )
+
+var Bytes, _ = abi.NewType("bytes", "", nil)
 
 func getCcipReadError(err error) (bool, string) {
 	var jsonErr, ok = err.(rpc.DataError)
@@ -72,14 +74,15 @@ func ccipRead(backend bind.ContractBackend, resolverAddr common.Address, revertD
 		return nil, errors.New("unregistered name")
 	}
 
-	oAbi, err := offchainresolver.ContractMetaData.GetAbi()
-	if err != nil {
-		return nil, errors.New("no address")
-	}
-	m, err := oAbi.MethodById(callback[:])
-	if err != nil {
-		return nil, errors.New("no address")
-	}
+	// this is used to handle any feedback with the same input/output
+	// regardless of method name
+	m := abi.NewMethod("", "", abi.Function, "view", false, false, abi.Arguments{
+		{Type: Bytes, Name: "values"},
+		{Type: Bytes},
+	}, abi.Arguments{
+		{Type: Bytes},
+	})
+
 	args, err := m.Inputs.Pack(common.FromHex(resp), common.FromHex(extraDataHex))
 	if err != nil {
 		return nil, errors.New("no address")
